@@ -7,10 +7,11 @@ const PurchaseCourses = () => {
     const [purchasedCourses, setPurchasedCourses] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [purchaseTrigger, setPurchaseTrigger] = useState(0);
 
     useEffect(() => {
         fetchData();
-    }, []);
+    }, [purchaseTrigger]);
 
     const fetchData = async () => {
         try {
@@ -33,9 +34,7 @@ const PurchaseCourses = () => {
     const handlePurchase = async (courseId) => {
         try {
             await courseService.purchaseCourse(courseId);
-            const purchasesResponse = await courseService.getPurchasedCourses();
-            const purchasedIds = (purchasesResponse.purchases || []).map(p => p.courseId._id);
-            setPurchasedCourses(purchasedIds);
+            setPurchaseTrigger(prev => prev + 1);
         } catch (err) {
             console.error('Error purchasing course:', err);
         }

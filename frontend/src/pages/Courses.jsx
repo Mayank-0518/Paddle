@@ -4,12 +4,15 @@ import { courseService } from '../api/courses';
 
 const Courses = () => {
     const [courses, setCourses] = useState([]);
+    const [purchasedCourses, setPurchasedCourses] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [purchaseTrigger, setPurchaseTrigger] = useState(0);
 
     useEffect(() => {
         fetchCourses();
-    }, []);
+        fetchPurchasedCourses();
+    }, [purchaseTrigger]);
 
     const fetchCourses = async () => {
         try {
@@ -21,6 +24,25 @@ const Courses = () => {
             setCourses([]);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchPurchasedCourses = async () => {
+        try {
+            const response = await courseService.getPurchasedCourses();
+            setPurchasedCourses(response.courses || []);
+        } catch (err) {
+            console.error('Error fetching purchased courses:', err);
+            setPurchasedCourses([]);
+        }
+    };
+
+    const handlePurchase = async (courseId) => {
+        try {
+            await courseService.purchaseCourse(courseId);
+            setPurchaseTrigger(prev => prev + 1);
+        } catch (err) {
+            console.error('Error purchasing course:', err);
         }
     };
 
@@ -48,7 +70,8 @@ const Courses = () => {
                         <CourseCard
                             key={course._id}
                             course={course}
-                            showPreview={true}
+                            onPurchase={handlePurchase}
+                            isPurchased={purchasedCourses.some(pc => pc._id === course._id)}
                         />
                     ))}
                 </div>
