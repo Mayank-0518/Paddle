@@ -77,7 +77,8 @@ if(!user){
 const passwordMatch = await bcrypt.compare(req.body.password, user.password);
 if(passwordMatch){
     const token=jwt.sign({id:user._id},JWT_SECRET_USER);
-    return res.json({message:"You are logged in",token:token});
+    
+    return res.json({message:"You are logged in",token:token,first_name:user.first_name});
 }
 else{
     return res.status(403).json({message:"Incorrect password"});

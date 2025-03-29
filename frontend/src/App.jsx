@@ -18,11 +18,9 @@ const PurchaseCourses = lazy(() => import('./pages/PurchaseCourses'));
 
 function App() {
     useEffect(() => {
-        // Check for saved dark mode preference
-        const savedDarkMode = localStorage.getItem('darkMode') === 'true';
-        if (savedDarkMode) {
-            document.documentElement.classList.add('dark');
-        }
+        // Set dark mode as default
+        document.documentElement.classList.add('dark');
+        localStorage.setItem('darkMode', 'true');
     }, []);
 
     return (

@@ -1,17 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import CourseCard from '../components/course/CourseCard';
 import { courseService } from '../api/courses';
+import Toast from '../components/ui/Toast';
+import { AnimatePresence } from 'framer-motion';
 
 const PurchaseCourses = () => {
     const [courses, setCourses] = useState([]);
     const [purchasedCourses, setPurchasedCourses] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [purchaseTrigger, setPurchaseTrigger] = useState(0);
+    const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
 
     useEffect(() => {
         fetchData();
-    }, [purchaseTrigger]);
+    }, []); // Only fetch on initial load
 
     const fetchData = async () => {
         try {
@@ -33,9 +35,26 @@ const PurchaseCourses = () => {
 
     const handlePurchase = async (courseId) => {
         try {
+            // Optimistically update the UI
+            setPurchasedCourses(prev => [...prev, courseId]);
+            
+            // Make the API call
             await courseService.purchaseCourse(courseId);
-            setPurchaseTrigger(prev => prev + 1);
+            
+            // Show success toast
+            setToast({
+                show: true,
+                message: 'Course purchased successfully!',
+                type: 'success'
+            });
         } catch (err) {
+            // Revert the optimistic update on error
+            setPurchasedCourses(prev => prev.filter(id => id !== courseId));
+            setToast({
+                show: true,
+                message: err.response?.data?.message || 'Failed to purchase course. Please try again.',
+                type: 'error'
+            });
             console.error('Error purchasing course:', err);
         }
     };
@@ -78,6 +97,15 @@ const PurchaseCourses = () => {
                     </div>
                 )}
             </div>
+            <AnimatePresence>
+                {toast.show && (
+                    <Toast
+                        message={toast.message}
+                        type={toast.type}
+                        onClose={() => setToast({ ...toast, show: false })}
+                    />
+                )}
+            </AnimatePresence>
         </div>
     );
 };
