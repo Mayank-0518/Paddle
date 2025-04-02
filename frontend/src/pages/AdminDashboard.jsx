@@ -46,7 +46,19 @@ const AdminDashboard = () => {
 
     const handleCreateCourse = async (courseData) => {
         try {
-            await courseService.createCourse(courseData);
+            // Log FormData entries for debugging
+            
+
+            // Create a new FormData if not already FormData
+            const formDataToSend = courseData instanceof FormData ? courseData : (() => {
+                const fd = new FormData();
+                Object.entries(courseData).forEach(([key, value]) => {
+                    fd.append(key, value);
+                });
+                return fd;
+            })();
+
+            await courseService.createCourse(formDataToSend);
             setShowCreateForm(false);
             await fetchCourses();
             setNotification({
@@ -99,7 +111,7 @@ const AdminDashboard = () => {
                 <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
                     {/* Notification Toast */}
                     {notification.show && (
-                        <div className={`fixed top-4 right-4 px-4 py-3 rounded-lg shadow-lg transition-all transform translate-y-0 ${
+                        <div className={`fixed top-4 right-4 px-4 py-3 rounded-lg shadow-lg transition-all transform translate-y-0 z-50 ${
                             notification.type === 'success' 
                                 ? 'bg-green-100 dark:bg-green-900 border border-green-400 dark:border-green-700 text-green-700 dark:text-green-100'
                                 : 'bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-100'

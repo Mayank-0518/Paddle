@@ -3,12 +3,35 @@ import axios from './axios';
 export const courseService = {
     // Course management (Admin)
     createCourse: async (courseData) => {
-        const response = await axios.post('/admin/course', courseData);
+        // Ensure courseData is FormData and being sent with correct headers
+        if (!(courseData instanceof FormData)) {
+            throw new Error('Course data must be FormData');
+        }
+
+        // Log FormData entries for debugging
+        
+        
+        const response = await axios.post('/admin/course', courseData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
         return response.data;
     },
 
     updateCourse: async (courseData) => {
-        const response = await axios.put('/admin/course', courseData);
+        // Ensure courseData is FormData
+        if (!(courseData instanceof FormData)) {
+            throw new Error('Course data must be FormData');
+        }
+
+      
+
+        const response = await axios.put('/admin/course', courseData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
         return response.data;
     },
 
@@ -24,7 +47,7 @@ export const courseService = {
         return response.data;
     },
 
-    // Course operations (User)
+    //user's course endpoints
     getAllCourses: async () => {
         const response = await axios.get('/courses/preview');
         return response.data;

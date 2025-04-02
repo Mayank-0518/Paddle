@@ -46,10 +46,14 @@ const EditCourse = () => {
 
     const handleSubmit = async (courseData) => {
         try {
-            await courseService.updateCourse({
-                courseId,
-                ...courseData
-            });
+            // Ensure courseData is FormData and contains courseId
+            if (!(courseData instanceof FormData)) {
+                throw new Error('Course data must be FormData');
+            }
+
+            
+
+            await courseService.updateCourse(courseData);
             setNotification({
                 show: true,
                 message: 'Course updated successfully!',
@@ -58,7 +62,7 @@ const EditCourse = () => {
         } catch (err) {
             setNotification({
                 show: true,
-                message: 'Failed to update course. Please try again.',
+                message: err.response?.data?.message || 'Failed to update course. Please try again.',
                 type: 'error'
             });
             console.error('Error updating course:', err);
@@ -76,7 +80,7 @@ const EditCourse = () => {
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6 transition-colors duration-200">
             {notification.show && (
-                <div className={`fixed top-4 right-4 px-4 py-3 rounded-lg shadow-lg transition-all transform ${
+                <div className={`fixed top-4 right-4 px-4 py-3 rounded-lg shadow-lg transition-all transform z-50 ${
                     notification.type === 'success' 
                         ? 'bg-green-100 dark:bg-green-900 border border-green-400 dark:border-green-700 text-green-700 dark:text-green-100'
                         : 'bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-100'
