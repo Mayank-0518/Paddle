@@ -9,6 +9,8 @@ import { Button as BorderButton } from '../components/ui/Borders';
 
 const Home = () => {
     const [courseImages, setCourseImages] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [backendError, setBackendError] = useState(false);
 
     const testimonials = [
         {
@@ -34,11 +36,16 @@ const Home = () => {
     useEffect(() => {
         const fetchCourseImages = async () => {
             try {
+                setLoading(true);
                 const response = await courseService.getAllCourses();
                 const images = response.courses.map(course => course.imageURL);
                 setCourseImages(images);
+                setBackendError(false);
             } catch (error) {
                 console.error('Error fetching course images:', error);
+                setBackendError(true);
+            } finally {
+                setLoading(false);
             }
         };
 
@@ -47,6 +54,23 @@ const Home = () => {
 
     return (
         <div className="min-h-screen bg-zinc-100 dark:bg-black transition-colors duration-200">
+            {/* Loading Overlay */}
+            {loading && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center backdrop-blur-sm">
+                    <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-xl text-center max-w-md mx-4">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                            {backendError ? 'Connecting to Server...' : 'Loading Courses...'}
+                        </h2>
+                        <p className="text-gray-600 dark:text-gray-300">
+                            {backendError 
+                                ? 'Please wait while we connect to the server. This might take a moment...'
+                                : 'We are getting everything ready for you. Just a moment...'}
+                        </p>
+                    </div>
+                </div>
+            )}
+
             {/* Hero Section - Full Screen */}
             <div className="relative h-screen flex items-center justify-center">
                 <BackgroundLines className="absolute inset-0 pointer-events-none" />
@@ -144,5 +168,6 @@ const Home = () => {
         </div>
     );
 };
+
 
 export default Home;

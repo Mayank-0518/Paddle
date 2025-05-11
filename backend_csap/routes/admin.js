@@ -21,7 +21,7 @@ adminRouter.post('/signup',async function(req,res){
         const parseDataWithSuccess = requiredBody.safeParse(req.body);
 
     if (!parseDataWithSuccess.success) {
-        return res.json({
+        return res.status(400).json({
             message: "Incorrect data format",
             error: parseDataWithSuccess.error,
         });
@@ -30,21 +30,38 @@ const {email,password,first_name,last_name}=req.body;
  const hashedPassword = await bcrypt.hash(password, 5);
 
 try{
-    await AdminModel.create({
-        email:email,
-        password:hashedPassword,
-        first_name:first_name,
-        last_name:last_name
-    })
-}catch(error){
-    return res.json({
-        message:"bruhh!"
-    })
-}
+    const newAdmin = await AdminModel.create({
+        email: email,
+        password: hashedPassword,
+        first_name: first_name,
+        last_name: last_name
+    });
 
-res.json({
-    message:"You are signed up"
-})
+    if (!newAdmin) {
+        return res.status(500).json({
+            message: "Failed to create admin"
+        });
+    }
+
+    res.status(201).json({
+        message: "You are signed up",
+        adminId: newAdmin._id
+    });
+}catch(error){
+    console.error("Error creating admin:", error);
+    
+    if (error.code === 11000) {
+        // Duplicate key error (unique constraint violation)
+        return res.status(409).json({
+            message: "Admin already exists with this email"
+        });
+    }
+    
+    return res.status(500).json({
+        message: "Error creating admin",
+        error: error.message
+    });
+}
 })
 
 adminRouter.post('/signin',async function(req,res){

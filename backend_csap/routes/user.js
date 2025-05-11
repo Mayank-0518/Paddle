@@ -1,5 +1,3 @@
-
-
 const {Router}=require('express');
 const {UserModel, purchaseModel}=require('../db')
 const{JWT_SECRET_USER} = require('../config');
@@ -24,7 +22,7 @@ userRouter.post('/signup' ,async function(req,res){
             const parseDataWithSuccess = requiredBody.safeParse(req.body);
     
         if (!parseDataWithSuccess.success) {
-            return res.json({
+            return res.status(400).json({
                 message: "Incorrect data format",
                 error: parseDataWithSuccess.error,
             });
@@ -33,21 +31,38 @@ userRouter.post('/signup' ,async function(req,res){
      const hashedPassword = await bcrypt.hash(password, 5);
 
     try{
-        await UserModel.create({
-            email:email,
-            password:hashedPassword,
-            first_name:first_name,
-            last_name:last_name
-        })
-    }catch(error){
-        return res.json({
-            message:"User already exists"
-        })
-    }
+        const newUser = await UserModel.create({
+            email: email,
+            password: hashedPassword,
+            first_name: first_name,
+            last_name: last_name
+        });
 
-    res.json({
-        message:"You are signed up"
-    })
+        if (!newUser) {
+            return res.status(500).json({
+                message: "Failed to create user"
+            });
+        }
+
+        res.status(201).json({
+            message: "You are signed up",
+            userId: newUser._id
+        });
+    }catch(error){
+        console.error("Error creating user:", error);
+        
+        if (error.code === 11000) {
+            // Duplicate key error (unique constraint violation)
+            return res.status(409).json({
+                message: "User already exists with this email"
+            });
+        }
+        
+        return res.status(500).json({
+            message: "Error creating user",
+            error: error.message
+        });
+    }
 })
 
 
@@ -72,7 +87,7 @@ const email = req.body.email;
 const user = await UserModel.findOne({ email: email });
 
 if(!user){
-    return response.status(400).json({ message:"Bruhh! user doesnt exist" });
+    return res.status(400).json({ message:"Bruhh! user doesnt exist" });
 }
 const passwordMatch = await bcrypt.compare(req.body.password, user.password);
 if(passwordMatch){
